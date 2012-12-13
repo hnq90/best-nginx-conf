@@ -1,0 +1,95 @@
+server {
+	listen   80; ## listen for ipv4; 
+	listen   [::]:80 default_server ipv6only=on; ## listen for ipv6
+
+	root /var/www;
+	index index.php index.html index.htm;
+
+	# Make site accessible from http://localhost/ to all projects
+	server_name _;
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ /index.html;
+		expires max;
+		autoindex on;
+	}
+
+	 location ~* ^.+\.(cur|js|jpe?g|ico|gif|png|svg|css|mp3|ogg|mpe?g|avi|zip|gz|bz2?|rar|swf)$ {
+                expires 7d;
+                access_log off;
+                tcp_nodelay off;
+                open_file_cache max=3000 inactive=120s;
+                open_file_cache_valid 45s;
+                open_file_cache_min_uses 2;
+                open_file_cache_errors off;
+        }
+
+	# ImageCache
+	location ~ ^/imagecache/ {
+		try_files $uri @rewrite;
+	}
+	
+	location @rewrite {
+                rewrite ^/(.*)$ /index.php?q=$1;
+        }
+	
+	## Include phpmyadmin location here
+	include phpmyadmin.conf;
+	
+	location /doc/ {
+		alias /usr/share/doc/;
+		allow 127.0.0.1;
+		allow ::1;
+		deny all;
+	}
+
+	# redirect server error pages to the static page /50x.html
+	#
+	error_page 500 502 503 504 /50x.html;
+	location = /50x.html {
+		root errors/;
+	}
+
+	# pass the PHP scripts to FastCGI server
+	#
+	location ~ \.php$ {
+	
+	# 	# For Micro Caching
+		include microcache.conf;
+
+	#	# With php5-cgi alone:
+	#	fastcgi_pass 127.0.0.1:9000;
+	#	# With php5-fpm:
+		fastcgi_pass unix:/tmp/php5-fpm.sock;
+		fastcgi_index index.php;
+		fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+		include fastcgi_params;
+		include fastcgi_caches;
+	}
+	
+	## Disallow access to .git directory: return 404 as not to disclose information.
+	location ^~ /.git {
+	    return 404;
+	}
+	
+	## Support for favicon. Return an 1x1 transparent GIF if it doesn't exist.
+	location = /favicon.ico {
+	    expires 30d;
+	    try_files /favicon.ico @empty;
+	}
+
+	## Return an in memory 1x1 transparent GIF.
+	location @empty {
+	    expires 30d;
+	    empty_gif;
+	}
+
+	## Any other attempt to access PHP files returns a 404.
+	location ~* ^.+\.php$ {
+	    return 404;
+	}
+
+}
+

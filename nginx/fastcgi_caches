@@ -1,0 +1,13 @@
+# Bypass cache if flag is set
+        fastcgi_no_cache 		$no_cache;
+        fastcgi_cache_bypass 		$no_cache;
+        fastcgi_cache 			microcache;
+        fastcgi_cache_key 		$server_name|$request_uri;
+        fastcgi_cache_valid 		404 30m;
+        fastcgi_cache_valid 		200 10s;
+        fastcgi_max_temp_file_size 	1M;
+        fastcgi_cache_use_stale 	updating;
+        fastcgi_pass_header 		Set-Cookie;
+        fastcgi_pass_header 		Cookie;
+        fastcgi_ignore_headers 		Cache-Control Expires Set-Cookie;
+        

@@ -1,0 +1,15 @@
+## Timeouts.
+client_body_timeout             60;
+client_header_timeout           60;
+keepalive_timeout            10 10;
+send_timeout                    60;
+
+## Body Size
+client_max_body_size			128M;
+
+## Reset lingering timed out connections. Deflect DDoS.
+reset_timedout_connection		on;
+
+## Buffer Size
+client_header_buffer_size    1k;
+large_client_header_buffers  4 4k;
